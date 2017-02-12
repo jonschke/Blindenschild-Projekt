@@ -27,34 +27,50 @@ Pyramidenbuchstaben = PyramidenschriftOrdner.dataFiles
 Braillebuchstaben = BrailleOrdner.dataFiles
 ZahlZuBuchstabe = {"1":"A", "2":"B", "3":"C", "4":"D", "5":"E", "6":"F", "7":"G", "8":"H", "9":"I", "0": "J" }
 BuchstabeZuZahl = {"A":"1", "B":"2", "C":"3", "D":"4", "E":"5", "F":"6", "G":"7", "H": "8", "I": "9", "J":"0" }
-SchildBreite = adsk.core.ValueInput.createByReal(20)
-
+SchildBreite = adsk.core.ValueInput.createByReal(2.0)
+FilletRadius1 = adsk.core.ValueInput.createByReal(0.1)
 
 Ursprung = adsk.core.Point3D.create()
-obererPunkt = adsk.core.Point3D.create(0,float(SchildformatAlsFloat)/2,0)
-untererPunkt = adsk.core.Point3D.create(0,float(SchildformatAlsFloat)/2-0.2,0)
+BasisPunkt = adsk.core.Point3D.create(0,float(SchildformatAlsFloat)/2,0)
+ObererPunkt = adsk.core.Point3D.create(0,float(SchildformatAlsFloat)/2+0.2,0)
 XVektor = adsk.core.Vector3D.create(1,0,0)
 WinkelfuerDrehung = -50
-WinkelfueSeite1= 70
-WinkelfueSeite2=-35
-radfuerDrehung = DegtoRad(WinkelfuerDrehung)
-radfuerSeite1 = DegtoRad(WinkelfueSeite1)
-radfuerSeite2 = DegtoRad(WinkelfueSeite2)
+WinkelfueSeite1= -70
+WinkelfueSeite2= 35
+RadfuerDrehung = DegtoRad(WinkelfuerDrehung)
+RadfuerSeite1 = DegtoRad(WinkelfueSeite1)
+RadfuerSeite2 = DegtoRad(WinkelfueSeite2)
 ##### KomponentenErstellung ####
 BasisSkizze = root.sketches.add(root.yZConstructionPlane)
 BasisKurven = BasisSkizze.sketchCurves
 BasisLines = BasisKurven.sketchLines
-Kurve1 = BasisKurven.sketchArcs.addByCenterStartSweep(Ursprung, obererPunkt, radfuerSeite1)
-Kurve2 = BasisKurven.sketchArcs.addByCenterStartSweep(Ursprung,Kurve1.startSketchPoint, radfuerSeite2)
+Kurve1 = BasisKurven.sketchArcs.addByCenterStartSweep(Ursprung, BasisPunkt, RadfuerSeite1)
+Kurve2 = BasisKurven.sketchArcs.addByCenterStartSweep(Ursprung, Kurve1.endSketchPoint, RadfuerSeite2)
 Kurven = BasisSkizze.findConnectedCurves(Kurve1)
-Offset = BasisSkizze.offset(Kurven, untererPunkt, 0.2)
-BasisLines.addByTwoPoints(Kurve1.endSketchPoint, Offset.item(1).endSketchPoint)
-BasisLines.addByTwoPoints(Kurve2.startSketchPoint, Offset.item(0).startSketchPoint)
+Offset = BasisSkizze.offset(Kurven, ObererPunkt, 0.2)
+BasisLines.addByTwoPoints(Kurve1.startSketchPoint, Offset.item(0).startSketchPoint)
+BasisLines.addByTwoPoints(Kurve2.endSketchPoint, Offset.item(1).endSketchPoint)
+
 Profile = BasisSkizze.profiles.item(0)
 RootExtrudes = root.features.extrudeFeatures
-RootExtrudeInput = rootExtrudes.createInput(Profile, 3)
+RootExtrudeInput = RootExtrudes.createInput(Profile, 3)
 RootExtrudeInput.setSymmetricExtent(SchildBreite ,True)
 Extrusion = RootExtrudes.add(RootExtrudeInput)
+
+### Get the Bodies ###
+
+Bodies = root.bRepBodies
+Body = Bodies.item(0)
+UpperEdges = Body.faces.item(3).edges
+edgeCollection1 = adsk.core.ObjectCollection.create();
+for n in range(0,UpperEdges.count-1):
+	edgeCollection1.add(UpperEdges.item(n))
+     print(n)
+
+RootFilets = root.features.filletFeatures
+Filet1Input = RootFilets.createInput()
+Filet1Input.addConstantRadiusEdgeSet(edgeCollection1, FilletRadius1, False)
+filet1 = RootFilets.add(Filet1Input)
 
 exit()
 
