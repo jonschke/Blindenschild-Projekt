@@ -72,9 +72,8 @@ def limitCollection (objekte, limit):
 Schild = "12"
 Schildformat = "42,4"
 SchildformatAlsFloat = floatConversion(Schildformat)/10
-SchildBreite = adsk.core.ValueInput.createByReal(2.0)
-FilletRadius1 = adsk.core.ValueInput.createByReal(0.5)
-FilletRadius2 = adsk.core.ValueInput.createByReal(0.1)
+FilletRadius1 = adsk.core.ValueInput.createByReal(0.75)
+FilletRadius2 = adsk.core.ValueInput.createByReal(0.075)
 WinkelfuerDrehung = -50
 WinkelfueSeite1= -70
 WinkelfueSeite2= 35
@@ -140,7 +139,7 @@ for DateiName in PyramidenDateinamenListe:
     MoveMatrix.translation = Vektor
     design.snapshots.add()
 #### Move the pyramid componenet so it is symetrical to the yz-plane ####
-SchildBreite = adsk.core.ValueInput.createByReal(Vektor.x+0.5)
+SchildBreite = adsk.core.ValueInput.createByReal(Vektor.x+0.08)
 Vektor.x = -Vektor.x/2
 MoveMatrix.translation = Vektor
 PyramidenOcc.transform = MoveMatrix
@@ -212,6 +211,6 @@ Filet1Input.addConstantRadiusEdgeSet(edgeCollection1, FilletRadius1, False)
 Filet1 = RootFilets.add(Filet1Input)
 ### Creating second Filet ###
 Edges = Body.edges
-edgeCollection2 = limitCollection(Edges, 0.789)
+edgeCollection2 = limitCollection(Edges, 2.7242)
 Filet2Input.addConstantRadiusEdgeSet(edgeCollection2, FilletRadius2, True)
 Filet2 = RootFilets.add(Filet2Input)
