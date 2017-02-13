@@ -13,7 +13,6 @@ occs = root.occurrences
 #### Definition of the Functions #####
 def DegtoRad(Deg):
 	return Deg*math.pi/180
-
 def floatConversion (number):
     return float(number.replace(",", "."))
 def stringtoDateinamenListe(beschriftung, schildformat):
@@ -48,7 +47,6 @@ def stringtoDateinamenListe(beschriftung, schildformat):
 			brailleDateinamenListe.append("Punkt Braille {}".format(Schildformat))
 			ZahlenModus = 0
 	return pyramidenDateinamenListe, brailleDateinamenListe
-
 def makeitemNamenDictionary (dateien):
 	itemNamenDictionary = {}
 	for n in range(0, len(dateien)):
@@ -56,7 +54,19 @@ def makeitemNamenDictionary (dateien):
 		datei = dateien.item(n)
 		itemNamenDictionary.update({dateiName : datei})
 	return itemNamenDictionary
-
+def limitCollection (objekte, limit):
+    objektKollektion = adsk.core.ObjectCollection.create();
+    limitUnten = limit - 0.0003
+    limitOben = limit + 0.0003
+    if objekte.classType() == adsk.fusion.BRepEdges.classType():
+        for i in range(0,objekte.count):
+            if limitUnten < objekte.item(i).length < limitOben:
+                objektKollektion.add(objekte.item(i))
+    if objekte.classType() == adsk.fusion.BRepFaces.classType():
+        for i in range(0,objekte.count):
+            if limitUnten < objekte.item(i).area < limitOben:
+                objektKollektion.add(objekte.item(i))
+    return objektKollektion
 ##### Definition of parameters #####
 
 Schild = "12"
@@ -176,32 +186,8 @@ Extrusion = RootExtrudes.add(RootExtrudeInput)
 Bodies = root.bRepBodies
 Body = Bodies.item(0)
 
-#### The Filet Process must be inserted after the combination process, but right now the item numbers are wrong #####
-'''
-edgeCollection1 = adsk.core.ObjectCollection.create();
-edgeCollection2 = adsk.core.ObjectCollection.create();
 
-edgeCollection1.add(Body.edges.item(0))
-edgeCollection1.add(Body.edges.item(2))
-edgeCollection1.add(Body.edges.item(7))
-edgeCollection1.add(Body.edges.item(11))
-
-
-RootFilets = root.features.filletFeatures
-Filet1Input = RootFilets.createInput()
-Filet2Input = RootFilets.createInput()
-Filet1Input.addConstantRadiusEdgeSet(edgeCollection1, FilletRadius1, False)
-
-
-Filet1 = RootFilets.add(Filet1Input)
-UpperEdges = Body.faces.item(6).edges
-for n in range(0,UpperEdges.count):
-	edgeCollection2.add(UpperEdges.item(n))
-
-
-Filet2Input.addConstantRadiusEdgeSet(edgeCollection2, FilletRadius2, False)
-Filet2 = RootFilets.add(Filet2Input)'''
-#### Combination and finish ###
+#### Combination ###
 
 RootCombines = root.features.combineFeatures
 
@@ -215,3 +201,17 @@ CombineInput.operation = 0
 Combination = CombineFeatures.add(CombineInput)
 for i in range(0, occs.count):
     occs.item(i).isLightBulbOn = False
+#### Filet ###
+Edges = Body.edges
+RootFilets = root.features.filletFeatures
+Filet1Input = RootFilets.createInput()
+Filet2Input = RootFilets.createInput()
+### Creating first Filet ####
+edgeCollection1 = limitCollection(Edges, 0.2)
+Filet1Input.addConstantRadiusEdgeSet(edgeCollection1, FilletRadius1, False)
+Filet1 = RootFilets.add(Filet1Input)
+### Creating second Filet ###
+Edges = Body.edges
+edgeCollection2 = limitCollection(Edges, 0.789)
+Filet2Input.addConstantRadiusEdgeSet(edgeCollection2, FilletRadius2, True)
+Filet2 = RootFilets.add(Filet2Input)
