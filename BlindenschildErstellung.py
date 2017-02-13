@@ -28,8 +28,8 @@ Braillebuchstaben = BrailleOrdner.dataFiles
 ZahlZuBuchstabe = {"1":"A", "2":"B", "3":"C", "4":"D", "5":"E", "6":"F", "7":"G", "8":"H", "9":"I", "0": "J" }
 BuchstabeZuZahl = {"A":"1", "B":"2", "C":"3", "D":"4", "E":"5", "F":"6", "G":"7", "H": "8", "I": "9", "J":"0" }
 SchildBreite = adsk.core.ValueInput.createByReal(2.0)
-FilletRadius1 = adsk.core.ValueInput.createByReal(0.1)
-
+FilletRadius1 = adsk.core.ValueInput.createByReal(0.5)
+FilletRadius2 = adsk.core.ValueInput.createByReal(0.1)
 Ursprung = adsk.core.Point3D.create()
 BasisPunkt = adsk.core.Point3D.create(0,float(SchildformatAlsFloat)/2,0)
 ObererPunkt = adsk.core.Point3D.create(0,float(SchildformatAlsFloat)/2+0.2,0)
@@ -61,16 +61,29 @@ Extrusion = RootExtrudes.add(RootExtrudeInput)
 
 Bodies = root.bRepBodies
 Body = Bodies.item(0)
-UpperEdges = Body.faces.item(3).edges
 edgeCollection1 = adsk.core.ObjectCollection.create();
-for n in range(0,UpperEdges.count-1):
-	edgeCollection1.add(UpperEdges.item(n))
-     print(n)
+edgeCollection2 = adsk.core.ObjectCollection.create();
+
+edgeCollection1.add(Body.edges.item(0))
+edgeCollection1.add(Body.edges.item(2))
+edgeCollection1.add(Body.edges.item(7))
+edgeCollection1.add(Body.edges.item(11))
+
 
 RootFilets = root.features.filletFeatures
 Filet1Input = RootFilets.createInput()
+Filet2Input = RootFilets.createInput()
 Filet1Input.addConstantRadiusEdgeSet(edgeCollection1, FilletRadius1, False)
-filet1 = RootFilets.add(Filet1Input)
+
+
+Filet1 = RootFilets.add(Filet1Input)
+UpperEdges = Body.faces.item(6).edges
+for n in range(0,UpperEdges.count):
+	edgeCollection2.add(UpperEdges.item(n))
+
+
+Filet2Input.addConstantRadiusEdgeSet(edgeCollection2, FilletRadius2, False)
+Filet2 = RootFilets.add(Filet2Input)
 
 exit()
 
